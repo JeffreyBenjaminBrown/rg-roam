@@ -3,8 +3,8 @@ rg-roam is a minimal standalone org-roam implementation, using ripgrep instead o
 # Purpose
 If org-roam and even org-mode break, but emacs still works,
 you can use these commands to do everything org-roam does.
-It will be slightly awkward relative to org-roam,
-but worlds better than having to spec all your searches and make all your edits manually.
+It will be awkward relative to org-roam,
+but worlds better than having to do all your searches and editing manually.
 
 # To load the code
 Be sure you have ripgrep installed outside of Emacs, 
