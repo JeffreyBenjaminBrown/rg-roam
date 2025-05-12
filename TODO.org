@@ -1,2 +1,0 @@
-* search text
-rg should search for any line containing :ROAM_ALIASES: or #+title: that contains each of the searched-for words in any order.

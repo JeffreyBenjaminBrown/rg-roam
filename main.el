@@ -1,6 +1,30 @@
 (load "~/org-roam/rescue/property-drawer-id.el")
 (load "~/org-roam/rescue/more.el")
 
+(require 'grep)
+
+(defun rg-roam-search (terms dir)
+  "Search DIR for .org files matching the space-separated TERMS provided.
+They must appear in that order, but can be among other intervening characters.
+Results are displayed in a `grep-mode' interactive buffer."
+  (interactive
+   (list (read-string "Search terms (space-separated): ")
+         (read-directory-name "Folder to search: " default-directory nil t)))
+  (unless (string-match-p "[^[:space:]]" terms)
+    (user-error "No search terms supplied"))
+  (let* ((default-directory (file-name-as-directory (expand-file-name dir)))
+         (words (split-string terms "[[:space:]]+" t))
+         ;; Build a flexible PCRE pattern that allows anything in between terms
+         (pattern
+          (concat "^\\s*(:(ROAM_ALIASES:)|(#\\+title:))\\s+"
+                  (mapconcat (lambda (w) (regexp-quote w)) words ".*")))
+         (cmd (format
+               "rg -P --no-heading --line-number --color=never -e %S -g '*.org' --glob '!*.git'"
+               pattern)))
+    (compilation-start
+     cmd 'grep-mode
+     (lambda (_) (format "*org-roam RG <%s>*" terms)))))
+
 (defun rg-roam-return-id ()
   "Extract the ID under point if there is one -- from a link or a properties drawer."
   (interactive)
