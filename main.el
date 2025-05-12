@@ -18,7 +18,7 @@
       nil)))
 
 (defun visit-org-roam-link-target (&optional id-arg)
-  "Show potential targets of the an org-roam link. Prompts the user for a folder to search, suggesting the current one."
+  "Show potential targets an id might refer to -- the id from the link under point, or the id provided as an argument. Prompts the user for a folder to search, suggesting the current one."
   (interactive)
   (let ((id (or id-arg (return-id))))
     (unless id

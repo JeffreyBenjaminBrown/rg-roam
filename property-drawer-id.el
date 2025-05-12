@@ -1,7 +1,6 @@
 (defun start-of-properties-drawer-this-line ()
   "Check if current line is the opening of a properties drawer.
-If the line matches the pattern (whitespace):PROPERTIES:(whitespace),
-return the position of the last character on the line.
+If so, return the position of the *last* character on the line.
 Otherwise return nil."
   (interactive)
   (save-excursion
@@ -17,8 +16,7 @@ Otherwise return nil."
 
 (defun end-of-properties-drawer-this-line ()
   "Check if current line is the opening of a properties drawer.
-If the line matches the pattern (whitespace):PROPERTIES:(whitespace),
-return the position of the last character on the line.
+If so, return the position of the *first* character on the line.
 Otherwise return nil."
   (interactive)
   (save-excursion
@@ -33,19 +31,19 @@ Otherwise return nil."
       result)))
 
 (defun property-drawer-content-start ()
-  "See property-drawer-content-end; same idea."
+  "Find the start of a property drawer.
+If the current line does not start with whitespace and a colon, return nil.
+If it is a properties drawer ending (:PROPERTIES::), return its end.
+Otherwise, continue searching line by line for the end."
   (interactive)
   (save-excursion
     (beginning-of-line)
     (let ((result nil))
-      (setq result (start-of-properties-drawer-this-line))
-      (when (not result)
-        (while (and (not result)
-                    (looking-at ;; line start, whitespace, colon
-		     "^[[:space:]]*:")) 
-          (setq result (start-of-properties-drawer-this-line))
-          (when (and (not result)
-                    (= (forward-line -1) 0))  ;; Successfully moved down
+      (while (and (not result)
+                  (looking-at "^[[:space:]]*:"))
+        (setq result (start-of-properties-drawer-this-line))
+        (unless result
+          (when (= (forward-line -1) 0)
             (beginning-of-line))))
       (when (called-interactively-p 'any)
         (message "Result: %s" result))
@@ -53,22 +51,18 @@ Otherwise return nil."
 
 (defun property-drawer-content-end ()
   "Find the end of a property drawer.
-Checks if current line is a properties drawer ending (:END:).
-If it's a properties drawer ending, returns the position of its first character.
-If not, moves downward line by line until finding a properties drawer end or a line without a colon.
-Returns nil if no property drawer end is found."
+If the current line does not start with whitespace and a colon, return nil.
+If it is a properties drawer ending (:END:), return its beginning.
+Otherwise, continue searching line by line for the end."
   (interactive)
   (save-excursion
     (beginning-of-line)
     (let ((result nil))
-      (setq result (end-of-properties-drawer-this-line))
-      (when (not result)
-        (while (and (not result)
-                    (looking-at ;; line start, whitespace, colon
-		     "^[[:space:]]*:")) 
-          (setq result (end-of-properties-drawer-this-line))
-          (when (and (not result)
-                    (= (forward-line 1) 0))  ;; Successfully moved down
+      (while (and (not result)
+                  (looking-at "^[[:space:]]*:"))
+        (setq result (end-of-properties-drawer-this-line))
+        (unless result
+          (when (= (forward-line 1) 0)
             (beginning-of-line))))
       (when (called-interactively-p 'any)
         (message "Result: %s" result))
