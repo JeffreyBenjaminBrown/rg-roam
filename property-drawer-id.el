@@ -1,4 +1,4 @@
-(defun start-of-properties-drawer-this-line ()
+(defun end-of-properties-opener-this-line ()
   "Check if current line is the opening of a properties drawer.
 If so, return the position of the *last* character on the line.
 Otherwise return nil."
@@ -14,7 +14,7 @@ Otherwise return nil."
       (message "Result: %s" result)
       result)))
 
-(defun end-of-properties-drawer-this-line ()
+(defun start-of-properties-closer-this-line ()
   "Check if current line is the opening of a properties drawer.
 If so, return the position of the *first* character on the line.
 Otherwise return nil."
@@ -30,7 +30,7 @@ Otherwise return nil."
       (message "Result: %s" result)
       result)))
 
-(defun property-drawer-content-start ()
+(defun end-of-properties-opener ()
   "Find the start of a property drawer.
 If the current line does not start with whitespace and a colon, return nil.
 If it is a properties drawer ending (:PROPERTIES::), return its end.
@@ -41,7 +41,7 @@ Otherwise, continue searching line by line for the end."
     (let ((result nil))
       (while (and (not result)
                   (looking-at "^[[:space:]]*:"))
-        (setq result (start-of-properties-drawer-this-line))
+        (setq result (end-of-properties-opener-this-line))
         (unless result
           (when (= (forward-line -1) 0)
             (beginning-of-line))))
@@ -49,7 +49,7 @@ Otherwise, continue searching line by line for the end."
         (message "Result: %s" result))
       result)))
 
-(defun property-drawer-content-end ()
+(defun start-of-properties-closer-this-line ()
   "Find the end of a property drawer.
 If the current line does not start with whitespace and a colon, return nil.
 If it is a properties drawer ending (:END:), return its beginning.
@@ -60,7 +60,7 @@ Otherwise, continue searching line by line for the end."
     (let ((result nil))
       (while (and (not result)
                   (looking-at "^[[:space:]]*:"))
-        (setq result (end-of-properties-drawer-this-line))
+        (setq result (start-of-properties-closer-this-line))
         (unless result
           (when (= (forward-line 1) 0)
             (beginning-of-line))))
@@ -75,10 +75,10 @@ Then searches for an :ID: line between those boundaries.
 If found, returns the ID value. Otherwise returns nil."
   (interactive)
   (let (drawer-start drawer-end id)
-    (setq drawer-start (property-drawer-content-start))
+    (setq drawer-start (end-of-properties-opener))
     (when drawer-start
       (message "start: %s" drawer-start) ;; DEBUG
-      (setq drawer-end (property-drawer-content-end))
+      (setq drawer-end (start-of-properties-closer-this-line))
       (when drawer-end
 	(message "end: %s" drawer-end) ;; DEBUG
         (save-excursion
