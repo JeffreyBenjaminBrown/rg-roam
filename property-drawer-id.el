@@ -68,7 +68,7 @@ Otherwise, continue searching line by line for the end."
         (message "Result: %s" result))
       result)))
 
-(defun rg-roam-return-id-from-properties-drawer ()
+(defun rg-roam-id-from-properties-drawer ()
   "Extract the ID from a properties drawer.
 First finds the boundaries of the properties drawer.
 Then searches for an :ID: line between those boundaries.

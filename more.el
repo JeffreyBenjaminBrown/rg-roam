@@ -14,7 +14,7 @@ Only searches .org files.
                         default-directory)))
     (rgrep (format ":ID:[[:space:]]*%s" id) "*.org" search-dir)))
 
-(defun rg-roam-return-id-from-link ()
+(defun rg-roam-id-from-link ()
   "Extract the ID from an org-mode link at point, if pointis on one."
   (interactive)
   (let (link-start link-end link-text id)
