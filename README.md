@@ -11,7 +11,7 @@ Be sure you have ripgrep installed outside of Emacs,
 and the `ripgrep` packages installed in Emacs.
 Open `main.el` and evaluate it (`M-x eval-buffer`).
 
-# Only five commands are necessary.
+# Only six commands are necessary.
 These are all interactive.
 	
 ## rg-roam-find
