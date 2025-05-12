@@ -1,4 +1,62 @@
-(defun return-id-under-point ()
+(defun return-id-from-properties-at-point ()
+  "Extract the ID from a properties drawer at point.
+If point is within a properties drawer, return the ID.
+Otherwise, print 'not in a properties drawer' and return nil."
+  (interactive)
+  (let (drawer-start drawer-end drawer-text id in-drawer)
+    (save-excursion
+      (setq in-drawer nil) 
+      (if (re-search-backward
+	   "^[[:space:]]*:PROPERTIES:[[:space:]]*$" nil t)
+          (progn
+            (setq drawer-start (point))
+            ;; Search forward for the end of the drawer from drawer start
+            (goto-char drawer-start)
+            (if (re-search-forward "^[[:space:]]*:END:[[:space:]]*$" nil t)
+                (progn
+                  (setq drawer-end (point))
+                  ;; Check if point is within the drawer
+                  (setq in-drawer (and (<= drawer-start (point))
+                                        (<= (point) drawer-end))))
+              ;; No END found
+              (setq drawer-start nil)))
+        ;; No PROPERTIES found looking backward
+        (setq drawer-start nil)))
+    
+    ;; If we're not in a drawer, try searching forward for a drawer start
+    (when (not in-drawer)
+      (save-excursion
+        (if (re-search-forward "^[[:space:]]*:PROPERTIES:[[:space:]]*$" nil t)
+            (progn
+              (setq drawer-start (match-beginning 0))
+              (if (re-search-forward "^[[:space:]]*:END:[[:space:]]*$" nil t)
+                  (progn
+                    (setq drawer-end (point))
+                    ;; Check if point is within the drawer
+                    (setq in-drawer (and (<= drawer-start (point))
+                                         (<= (point) drawer-end))))
+                ;; No END found
+                (setq drawer-start nil)))
+          ;; No PROPERTIES found looking forward
+          (setq drawer-start nil))))
+    
+    ;; If we're in a drawer, extract the ID
+    (when in-drawer
+      (save-excursion
+        (goto-char drawer-start)
+        (when (re-search-forward "^[[:space:]]*:ID:[[:space:]]*\\([a-f0-9]\\{8\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{12\\}\\)[[:space:]]*$" drawer-end t)
+          (setq id (match-string 1)))))
+    
+    ;; Return the ID or a message
+    (if id
+        (progn
+          (when (called-interactively-p 'any)
+            (message "Found ID: %s" id))
+          id)
+      (message "Not in a properties drawer with ID")
+      nil)))
+
+(defun return-id-from-link-under-point ()
   "Extract the ID from an org-mode link at point.
 If point is on a link, return the ID.
 Otherwise, print 'not a link' and return nil."
@@ -30,7 +88,7 @@ Otherwise, print 'not a link' and return nil."
         (message "Found ID: %s" id))
       id)))
 
-(defun org-roam-link-targets (id &optional directory)
+(defun visit-org-roam-link-targets-ni (id &optional directory)
   "Find files containing properties buckets with the given ID.
 Takes an ID string and displays an interactive grep results buffer.
 Optional DIRECTORY specifies where to search (defaults to current buffer's directory).
@@ -48,10 +106,10 @@ Only searches .org files."
 (defun visit-org-roam-link-target (&optional id-arg)
   "Visit the target of an org-roam link.
 If ID is provided, find files containing that ID.
-Otherwise, extract the ID from the link at point using `return-id-under-point`.
+Otherwise, extract the ID from the link at point using `return-id-from-link-under-point`.
 Prompts the user for a folder to search, suggesting the current one."
   (interactive)
-  (let ((id (or id-arg (return-id-under-point))))
+  (let ((id (or id-arg (return-id-from-link-under-point))))
     (unless id
       (error "No ID provided or found at point"))
     (let ( ( search-dir
@@ -59,6 +117,26 @@ Prompts the user for a folder to search, suggesting the current one."
                "Directory to search: " 
                (or (file-name-directory buffer-file-name)
                    default-directory))))
-      (org-roam-link-targets id search-dir))))
+      (visit-org-roam-link-targets-ni id search-dir))))
 
-
+(defun new-org-roam-file ()
+  "Creates a new org-roam file with a random ID.
+That is, it opens an unsaved buffer with
+  a properties drawer containing a random ID, and
+  a title line with the cursor positioned after it."
+  (interactive)
+  (let ((new-id (format "%04x%04x-%04x-%04x-%04x-%04x%04x%04x"
+                        (random 65536) (random 65536)
+                        (random 65536)
+                        (logior #x4000 (logand #x0fff (random 65536)))
+                        (logior #x8000 (logand #x3fff (random 65536)))
+                        (random 65536) (random 65536) (random 65536))))
+    (let ((buffer (generate-new-buffer "untitled.org")))
+      (with-current-buffer buffer
+        (insert (format
+		 ":PROPERTIES:\n:ID:       %s\n:END:\n#+title: "
+		 new-id))
+        (org-mode)
+        (goto-char (point-max)))
+      (switch-to-buffer buffer)
+      (setq-local buffer-offer-save t))))
