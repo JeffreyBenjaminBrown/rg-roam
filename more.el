@@ -1,4 +1,4 @@
-(defun visit-org-roam-link-targets-ni (id &optional directory)
+(defun rg-roam-visit-link-ni (id &optional directory)
   "Find property lines containing the given ID.
 Takes an ID string and displays an interactive grep results buffer.
 Optional DIRECTORY specifies where to search (defaults to current buffer's directory).
@@ -14,7 +14,7 @@ Only searches .org files.
                         default-directory)))
     (rgrep (format ":ID:[[:space:]]*%s" id) "*.org" search-dir)))
 
-(defun return-id-from-link-under-point ()
+(defun rg-roam-return-id-from-link ()
   "Extract the ID from an org-mode link at point, if pointis on one."
   (interactive)
   (let (link-start link-end link-text id)
@@ -44,7 +44,7 @@ Only searches .org files.
         (message "Found ID: %s" id))
       id)))
 
-(defun random-uid ()
+(defun rg-roam-random-uid ()
     (format "%04x%04x-%04x-%04x-%04x-%04x%04x%04x"
             (random 65536) (random 65536)
             (random 65536)

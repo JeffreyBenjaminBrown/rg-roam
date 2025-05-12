@@ -1,13 +1,13 @@
 (load "~/org-roam/rescue/property-drawer-id.el")
 (load "~/org-roam/rescue/more.el")
 
-(defun return-id ()
+(defun rg-roam-return-id ()
   "Extract the ID under point if there is one -- from a link or a properties drawer."
   (interactive)
   (let ((id nil))
-    (setq id (return-id-from-link-under-point))
+    (setq id (rg-roam-return-id-from-link))
     (when (not id)
-      (setq id (return-id-from-properties-drawer)))
+      (setq id (rg-roam-return-id-from-properties-drawer)))
     (if id
         (progn
           (when (called-interactively-p 'any)
@@ -17,10 +17,10 @@
       (message "No ID found under point.")
       nil)))
 
-(defun visit-org-roam-link-target (&optional id-arg)
+(defun rg-roam-visit-link (&optional id-arg)
   "Show potential targets an id might refer to -- the id from the link under point, or the id provided as an argument. Prompts the user for a folder to search, suggesting the current one."
   (interactive)
-  (let ((id (or id-arg (return-id))))
+  (let ((id (or id-arg (rg-roam-return-id))))
     (unless id
       (error "No ID provided or found at point"))
     (let ( ( search-dir
@@ -28,15 +28,15 @@
                "Directory to search: " 
                (or (file-name-directory buffer-file-name)
                    default-directory))))
-      (visit-org-roam-link-targets-ni id search-dir))))
+      (rg-roam-visit-link-ni id search-dir))))
 
-(defun new-org-roam-file ()
+(defun rg-roam-new-file ()
   "Creates a new org-roam file with a random ID. 
 That is, open an unsaved buffer in the current folder with:
 - a properties drawer containing a random ID
 - a title line with the cursor positioned after"
   (interactive)
-  (let ((new-id (random-uid)))
+  (let ((new-id (rg-roam-random-uid)))
     (let ((buffer (generate-new-buffer "untitled.org")))
       (with-current-buffer buffer
         (insert (format
@@ -47,7 +47,7 @@ That is, open an unsaved buffer in the current folder with:
       (switch-to-buffer buffer)
       (setq-local buffer-offer-save t))))
 
-(defun make-org-roam-link (id label)
+(defun rg-roam-link (id label)
   "Create an org-roam link with the specified ID and LABEL.
 If region is active, use the selected text as the label.
 If the label contains a newline, abort."
@@ -66,10 +66,10 @@ If the label contains a newline, abort."
       (insert (format "[[id:%s][%s]]" id label))
       (format "[[id:%s][%s]]" id label))))
 
-(defun insert-properties-drawer-with-id ()
+(defun rg-roam-properties-drawer-with-id ()
   "Insert a properties drawer with a random ID after the current line."
   (interactive)
-  (let ((id (format "%s" (random-uid))))
+  (let ((id (format "%s" (rg-roam-random-uid))))
     (save-excursion
       (end-of-line)
       (open-line 1)
