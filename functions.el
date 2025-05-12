@@ -3,32 +3,32 @@
 If point is on a link, return the ID.
 Otherwise, print 'not a link' and return nil."
   (interactive)
-  (let* ((line (thing-at-point 'line t))
-         (line-beginning (line-beginning-position))
-         (point-in-line (- (point) line-beginning))
-         (start-pos 0)
-         (found-id nil))
-
-    ;; Search for all org ID links in the current line
-    (while (and (not found-id)
-                (string-match "\\[\\[id:\\([a-f0-9]\\{8\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{12\\}\\)\\]\\[.*?\\]\\]" line start-pos))
-      (let ((match-start (+ line-beginning (match-beginning 0)))
-            (match-end (+ line-beginning (match-end 0))))
-        
-        ;; Check if point is within this link
-        (if (and (<= match-start (point)) (<= (point) match-end))
-            (setq found-id (match-string 1 line))
-          ;; If not in this link, continue searching from after this match
-          (setq start-pos (match-end 0)))))
-    
-    ;; Return the ID or print a message
-    (if found-id
-        (progn
-          (when (called-interactively-p 'any)
-            (message "Found ID: %s" found-id))
-          found-id)
-      (message "Not a link")
-      nil)))
+  (let (link-start link-end link-text id)
+    (save-excursion
+      (let ((line-start (line-beginning-position)))
+        (if (search-backward "[[" line-start t)
+            (setq link-start (point))
+          (message "Not a link")
+          (setq link-start nil))))
+    (when link-start
+      (save-excursion
+        (let ((line-end (line-end-position)))
+          (goto-char link-start)
+          (if (search-forward "]]" line-end t)
+              (setq link-end (point))
+            (message "Not a link")
+            (setq link-end nil)))))
+    (when (and link-start link-end)
+      (setq link-text ( buffer-substring-no-properties
+			link-start link-end))
+      (if (string-match "\\[\\[id:\\([a-f0-9]\\{8\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{4\\}-[a-f0-9]\\{12\\}\\)\\]\\[.*?\\]\\]" link-text)
+          (setq id (match-string 1 link-text))
+        (message "Not a link")
+        (setq id nil)))
+    (when id
+      (when (called-interactively-p 'any)
+        (message "Found ID: %s" id))
+      id)))
 
 (defun org-roam-link-targets (id &optional directory)
   "Find files containing properties buckets with the given ID.
