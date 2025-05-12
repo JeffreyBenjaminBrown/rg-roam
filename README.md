@@ -1,4 +1,4 @@
-rg-roam is a minimal standalone org-roam implementation, using ripgrep instead of sql. It might get extended it but it works as of commit _ in only 250 lines of code.
+rg-roam is a minimal standalone org-roam implementation, using ripgrep instead of sql. It might get extended it but it works as of commit 98320c96b34ec6f0841fac6e2d5c3cf917eb1ae2 in only 250 lines of code.
 
 # Purpose
 If org-roam and even org-mode break, but emacs still works,
