@@ -1,8 +1,9 @@
 (defun visit-org-roam-link-targets-ni (id &optional directory)
-  "Find files containing properties buckets with the given ID.
+  "Find property lines containing the given ID.
 Takes an ID string and displays an interactive grep results buffer.
 Optional DIRECTORY specifies where to search (defaults to current buffer's directory).
-Only searches .org files."
+Only searches .org files.
+(The -ni means not interactive.)"
   (unless id
     (error "No ID provided"))
   (when ;; "prevents command injection" --claude
@@ -14,9 +15,7 @@ Only searches .org files."
     (rgrep (format ":ID:[[:space:]]*%s" id) "*.org" search-dir)))
 
 (defun return-id-from-link-under-point ()
-  "Extract the ID from an org-mode link at point.
-If point is on a link, return the ID.
-Otherwise, print 'not a link' and return nil."
+  "Extract the ID from an org-mode link at point, if pointis on one."
   (interactive)
   (let (link-start link-end link-text id)
     (save-excursion
@@ -44,3 +43,11 @@ Otherwise, print 'not a link' and return nil."
       (when (called-interactively-p 'any)
         (message "Found ID: %s" id))
       id)))
+
+(defun random-uid ()
+    (format "%04x%04x-%04x-%04x-%04x-%04x%04x%04x"
+            (random 65536) (random 65536)
+            (random 65536)
+            (logior #x4000 (logand #x0fff (random 65536)))
+            (logior #x8000 (logand #x3fff (random 65536)))
+            (random 65536) (random 65536) (random 65536)))

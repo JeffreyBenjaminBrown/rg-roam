@@ -2,10 +2,7 @@
 (load "~/org-roam/rescue/more.el")
 
 (defun return-id ()
-  "Extract the ID under point, either from a link or properties drawer.
-First tries to extract ID from a link at point.
-If no link ID is found, tries to extract from properties drawer.
-Returns the ID if found, nil otherwise."
+  "Extract the ID under point if there is one -- from a link or a properties drawer."
   (interactive)
   (let ((id nil))
     (setq id (return-id-from-link-under-point))
@@ -21,10 +18,7 @@ Returns the ID if found, nil otherwise."
       nil)))
 
 (defun visit-org-roam-link-target (&optional id-arg)
-  "Visit the target of an org-roam link.
-If ID is provided, find files containing that ID.
-Otherwise, extract the ID from the link at point using `return-id-from-link-under-point`.
-Prompts the user for a folder to search, suggesting the current one."
+  "Show potential targets of the an org-roam link. Prompts the user for a folder to search, suggesting the current one."
   (interactive)
   (let ((id (or id-arg (return-id))))
     (unless id
@@ -37,17 +31,12 @@ Prompts the user for a folder to search, suggesting the current one."
       (visit-org-roam-link-targets-ni id search-dir))))
 
 (defun new-org-roam-file ()
-  "Creates a new org-roam file with a random ID.
-That is, it opens an unsaved buffer with
-  a properties drawer containing a random ID, and
-  a title line with the cursor positioned after it."
+  "Creates a new org-roam file with a random ID. 
+That is, open an unsaved buffer in the current folder with:
+- a properties drawer containing a random ID
+- a title line with the cursor positioned after"
   (interactive)
-  (let ((new-id (format "%04x%04x-%04x-%04x-%04x-%04x%04x%04x"
-                        (random 65536) (random 65536)
-                        (random 65536)
-                        (logior #x4000 (logand #x0fff (random 65536)))
-                        (logior #x8000 (logand #x3fff (random 65536)))
-                        (random 65536) (random 65536) (random 65536))))
+  (let ((new-id (random-uid)))
     (let ((buffer (generate-new-buffer "untitled.org")))
       (with-current-buffer buffer
         (insert (format
@@ -61,7 +50,7 @@ That is, it opens an unsaved buffer with
 (defun make-org-roam-link (id label)
   "Create an org-roam link with the specified ID and LABEL.
 If region is active, use the selected text as the label.
-Otherwise, prompt for the label. If the label contains a newline, the operation is canceled."
+If the label contains a newline, abort."
   (interactive
    (let* ((id-input (read-string "Enter ID: "))
           (label-input (if (use-region-p)
@@ -76,3 +65,15 @@ Otherwise, prompt for the label. If the label contains a newline, the operation 
         (delete-region (region-beginning) (region-end)))
       (insert (format "[[id:%s][%s]]" id label))
       (format "[[id:%s][%s]]" id label))))
+
+(defun insert-properties-drawer-with-id ()
+  "Insert a properties drawer with a random ID after the current line."
+  (interactive)
+  (let ((id (format "%s" (random-uid))))
+    (save-excursion
+      (end-of-line)
+      (open-line 1)
+      (forward-line 1)
+      (insert ":PROPERTIES:\n:ID: " id "\n:END:"))
+    (message "Inserted properties drawer with ID: %s" id)
+    (kill-new id)))
