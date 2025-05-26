@@ -1,5 +1,5 @@
-(load "~/org-roam/rescue/property-drawer-id.el")
-(load "~/org-roam/rescue/more.el")
+(load-file "./property-drawer-id.el")
+(load-file "./more.el")
 
 (require 'grep)
 
@@ -17,7 +17,7 @@ Results are displayed in a `grep-mode' interactive buffer."
          (words (split-string terms "[[:space:]]+" t))
          ;; Build a flexible PCRE pattern that allows anything in between terms
          (pattern
-          (concat "^\\s*(:(ROAM_ALIASES:)|(#\\+title:))\\s+"
+          (concat "^\\s*(:(ROAM_ALIASES:)|(#\\+title:)|(#\\+filetags:))\\s+"
                   (mapconcat (lambda (w) (regexp-quote w)) words ".*")))
          (cmd (format
                "rg -P --no-heading --line-number --color=never -e %S -g '*.org' --glob '!*.git'"
@@ -33,14 +33,14 @@ Results are displayed in a `grep-mode' interactive buffer."
     (unless id
       (error "No ID provided or found at point"))
     (let ( ( search-dir
-	     ( read-directory-name 
-               "Directory to search: " 
+	     ( read-directory-name
+               "Directory to search: "
                (or (file-name-directory buffer-file-name)
                    default-directory))))
       (rg-roam-visit-link-ni id search-dir))))
 
 (defun rg-roam-new-file ()
-  "Creates a new org-roam file with a random ID. 
+  "Creates a new org-roam file with a random ID.
 That is, open an unsaved buffer in the current folder with:
 - a properties drawer containing a random ID
 - a title line with the cursor positioned after"
