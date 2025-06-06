@@ -17,7 +17,7 @@ Results are displayed in a `grep-mode' interactive buffer."
          (words (split-string terms "[[:space:]]+" t))
          ;; Build a flexible PCRE pattern that allows anything in between terms
          (pattern
-          (concat "^\\s*(:(ROAM_ALIASES:)|(#\\+title:)|(#\\+filetags:))\\s+"
+          (concat "^\\s*(:(ROAM_ALIASES:)|(#\\+title:)|(#\\+filetags:))\\s+.*"
                   (mapconcat (lambda (w) (regexp-quote w)) words ".*")))
          (cmd (format
                "rg -P --no-heading --line-number --color=never -e %S -g '*.org' --glob '!*.git'"
