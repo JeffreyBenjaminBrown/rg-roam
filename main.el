@@ -5,8 +5,7 @@
 
 (defun rg-roam-find (terms dir)
   "Search DIR for .org files matching the space-separated TERMS provided.
-They must appear in that order,
-but can be among other intervening characters.
+Terms can appear in any order within the roam fields.
 Results are displayed in a `grep-mode' interactive buffer."
   (interactive
    (list (read-string "Search terms (space-separated): ")
@@ -15,10 +14,14 @@ Results are displayed in a `grep-mode' interactive buffer."
     (user-error "No search terms supplied"))
   (let* ((default-directory (file-name-as-directory (expand-file-name dir)))
          (words (split-string terms "[[:space:]]+" t))
-         ;; Build a flexible PCRE pattern that allows anything in between terms
          (pattern
-          (concat "^\\s*(:(ROAM_ALIASES:)|(#\\+title:)|(#\\+filetags:))\\s+.*"
-                  (mapconcat (lambda (w) (regexp-quote w)) words ".*")))
+          (concat
+           "^\\s*(:(ROAM_ALIASES:)|(#\\+title:)|(#\\+filetags:))\\s+"
+           (mapconcat (lambda (w)
+                        (format "(?=.*%s)" ;; lookahead assertions, to match terms in any order
+                                (regexp-quote w)))
+                      words "")
+           ".*"))
          (cmd (format
                "rg -P --no-heading --line-number --color=never -e %S -g '*.org' --glob '!*.git'"
                pattern)))
